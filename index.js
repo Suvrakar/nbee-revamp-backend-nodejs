@@ -11,6 +11,7 @@ const JwtStrategy = passportJWT.Strategy;
 const cors = require("cors");
 const { Users } = require("./models/Users");
 const mongoose = require("mongoose");
+const { Users_Nbee102 } = require("./models/Users_Nbee102");
 
 const PORT = process.env.PORT || 5000;
 const users = [
@@ -156,7 +157,87 @@ app.get("/users/search", async (req, res) => {
 
     if (query) {
       users = await Users.find({
-        $or: [{ email: query }, { phone: query }],
+        $or: [
+          { email: { $regex: query, $options: "i" } },
+          // { phone: { $regex: query, $options: "i" } },
+          { name: { $regex: query, $options: "i" } },
+        ],
+      });
+
+      if (users.length > 0) {
+        res.json(users);
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } else {
+      res.status(400).json({ message: "Please provide a query parameter" });
+    }
+  } catch (error) {
+    console.error("Error searching for user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/usersnbee102", async (req, res) => {
+  try {
+    const users = await Users_Nbee102.find();
+    res.json(users);
+  } catch (error) {
+    console.error("Error retrieving users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/usersnbee102/:id", async (req, res) => {
+  try {
+    const user = await Users_Nbee102.findById(req.params.id);
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error retrieving user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put("/usersnbee102/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    console.log(userId);
+    const { name, phone, email, paymentStatus } = req.body;
+
+    const editUser = await Users_Nbee102.findById(userId);
+
+    if (editUser) {
+      const updatedUser = await Users_Nbee102.findByIdAndUpdate(
+        userId,
+        { name, phone, email, paymentStatus },
+        { new: true }
+      );
+      res.json(updatedUser);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/usersnbee102/search", async (req, res) => {
+  try {
+    const { query } = req.query;
+    let users;
+
+    if (query) {
+      users = await Users_Nbee102.find({
+        $or: [
+          { email: { $regex: query, $options: "i" } },
+          // { phone: { $regex: query, $options: "i" } },
+          { name: { $regex: query, $options: "i" } },
+        ],
       });
     } else {
       return res

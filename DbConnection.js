@@ -6,7 +6,6 @@ mongoose.connect('mongodb://localhost:27017/my-database', {
 })
   .then(() => {
     console.log('Connected to MongoDB');
-    // Start your Express server after successful database connection
     app.listen(3000, () => {
       console.log('Server started on port 3000');
     });
